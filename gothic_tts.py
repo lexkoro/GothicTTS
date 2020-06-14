@@ -24,6 +24,7 @@ def synthesize_tts(text,
                    sentence_file):
     
     global status
+
     synthesize.main(text=text,
                     use_cuda=use_cuda,
                     use_gst=use_gst,
@@ -33,6 +34,7 @@ def synthesize_tts(text,
                     speaker_name=speaker_name,
                     vocoder=vocoder_type,
                     sentence_file=sentence_file)
+
     status = True
 
 
@@ -95,15 +97,16 @@ def main_gui():
             with open(speakers_path, 'r') as json_file:
                 speaker_data = json.load(json_file)
             speaker_lst = [speaker for speaker, _ in speaker_data.items()]
-            speakerDropDown = sg.DropDown(speaker_lst, speaker_lst[0], key='dbSpeaker', pad=[5, 5])
         else:
-            speakerDropDown = sg.DropDown(["Default"], "Default", visible=False, key='dbSpeaker', pad=[5, 5])
+            speaker_lst = ['Default']
 
     # All the stuff inside your window.
     layout = [
         [sg.Text('Project Settings:', font=('Arial', 12, 'bold'))],
         [projectFolders],
         [sg.Text(cuda_text, text_color=cuda_color, font=('Arial', 10,'bold')), use_cuda],
+        [sg.Text('Speaker:', pad=[5, 5], justification='left', key='lblSpeaker'), 
+         sg.DropDown(speaker_lst, speaker_lst[0], key='dbSpeaker', pad=[5, 5])],
         
         [sg.Text('_' * 90)],
         
@@ -111,8 +114,6 @@ def main_gui():
         [sg.Radio('GriffinLim', 0, True, font=('Arial', 11), key='radioGL'),
          sg.Radio('WaveRNN', 0, font=('Arial', 11), key='radioWR'),
          sg.Radio('PwGAN / MelGAN', 0, font=('Arial', 11), key='radioGAN')],
-        
-        [sg.Text('Speaker:', pad=[5, 5], visible=False), speakerDropDown],
         [sg.Checkbox('Use GST?', True, visible=False, enable_events=True, pad=[5, 5], key='cbUseGST')],
         
         [sg.Text('_' * 90)],
@@ -128,40 +129,12 @@ def main_gui():
         [sg.Text('Tone of Speech: ',  pad=[5, 5], size=(20, 0), font=('Arial', 11), key='token5'), 
             sg.Slider(range=(-50,50), default_value=0, size=(30, 12), orientation='horizontal', font=('Arial', 10, 'bold'), key='toneSlider')],
 
-        # [sg.Text('1', pad=[5, 5], size=[1, 1], key='token1'), 
-        #     sg.Slider(range=(-4,4), default_value=0, size=(30,15), orientation='horizontal', font=('Helvetica', 8), pad=[5, 5], key='slider1')],
-
-        # [sg.Text('2', pad=[5, 5], size=[1, 1], key='token2'), 
-        #     sg.Slider(range=(-4,4), default_value=0, size=(30,15), orientation='horizontal', font=('Helvetica', 8), pad=[5, 5], key='slider2')],
-        
-        # [sg.Text('3', pad=[5, 5], size=[1, 1], key='token3'), 
-        #     sg.Slider(range=(-4,4), default_value=0, size=(30,15), orientation='horizontal', font=('Helvetica', 8), pad=[5, 5], key='slider3')],
-                
-        # [sg.Text('4', pad=[5, 5], size=[1, 1], key='token4'), 
-        #     sg.Slider(range=(-4,4), default_value=0, size=(30,15), orientation='horizontal', font=('Helvetica', 8), pad=[5, 5], key='slider4')],
-        
-        # [sg.Text('5', pad=[5, 5], size=[1, 1], key='token5'), 
-        #     sg.Slider(range=(-4,4), default_value=0, size=(30,15), orientation='horizontal', font=('Helvetica', 8), pad=[5, 5], key='slider5')],
-        
-        # [sg.Text('6', pad=[5, 5], size=[1, 1], key='token6'), 
-        #     sg.Slider(range=(-4,4), default_value=0, size=(30,15), orientation='horizontal', font=('Helvetica', 8), pad=[5, 5], key='slider6')],
-        
-        # [sg.Text('7', pad=[5, 5], size=[1, 1], key='token7'), 
-        #     sg.Slider(range=(-4,4), default_value=0, size=(30,15), orientation='horizontal', font=('Helvetica', 8), pad=[5, 5], key='slider7')],
-                
-        # [sg.Text('8', pad=[5, 5], size=[1, 1], key='token8'), 
-        #     sg.Slider(range=(-4,4), default_value=0, size=(30,15), orientation='horizontal', font=('Helvetica', 8), pad=[5, 5], key='slider8')],
-        
-        # [sg.Text('9', pad=[5, 5], size=[1, 1], key='token9'), 
-        #     sg.Slider(range=(-4,4), default_value=0, size=(30,15), orientation='horizontal', font=('Helvetica', 8), pad=[5, 5], key='slider9')],
-          
-    #    [sg.Text('Prosody of Speech:', pad=[5, 5]), sg.DropDown(['Normal', 'Happy', 'Angry'], 'Normal', key='dbProsody', pad=[5, 5])],
         [sg.Text('_' * 90)],
         
         [sg.Checkbox('Use file for speech generation', False, font=('Arial', 12, 'bold'), enable_events=True, pad=[5, 5], key='cbLoadFile')],
         [sg.Text('', size=[75, None], font=('Arial', 10), key='lblTextFile')],
         [sg.Text('Enter\nText:', font=('Arial', 12, 'bold'), pad=[5, 5]), textInput, sg.Button('Output\nFolder', size=[5, 3], enable_events=True, key='btnOpenOutput')],
-        [sg.Button('Generate', key='btnGenerate'), sg.Button('Exit'), loadingAnimation]
+        [sg.Button('Generate', key='btnGenerate'), sg.Button('Exit'), loadingAnimation],
     ]
 
     # Create the Window
@@ -182,7 +155,7 @@ def main_gui():
                 max_length_name = len(max(speaker_lst, key=len))
                 window['dbSpeaker'].update(values=speaker_lst)
                 window['dbSpeaker'].set_size(size=(max_length_name, None))
-            else:
+            else:   
                 window['dbSpeaker'].update(values=["Default"])
                 window['dbSpeaker'].set_size(size=(len("Default"), None))
                 
@@ -266,6 +239,7 @@ def main_gui():
                          line_width=65, icon='g.ico')
                 textInput.SetFocus()
 
+            
         if status:
             print('Finished')
             loadingAnimation.Update(filename=path_loading_gif, visible=False)

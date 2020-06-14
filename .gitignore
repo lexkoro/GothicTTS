@@ -1,0 +1,4 @@
+*.wav
+*.pth.tar
+*.pyc
+__pychache__
