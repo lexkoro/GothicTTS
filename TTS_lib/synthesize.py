@@ -198,12 +198,12 @@ def main(**kwargs):
 
     # load vocoder
     if vocoder_type is 'GAN':
-        model_file = glob(str(Path("/media/alexander/LinuxFS/Documents/PycharmProjects/GothicTTS_GUI/TTS_lib/vocoder/Trainings/multiband-melgan-rwd-Juni-07-2020_12+53-9d7cb1e/checkpoint_*.pth.tar")))
+        model_file = glob(str(Path("/media/alexander/LinuxFS/Documents/PycharmProjects/GothicTTS/TTS_lib/vocoder/Trainings/multiband-melgan-rwd-Juni-07-2020_12+53-9d7cb1e/checkpoint_*.pth.tar")))
         if model_file:
             print(model_file[0])
             vocoder, ap_vocoder = load_melgan(str(Path('TTS_lib')), 
             str(model_file[0]), 
-            str("/media/alexander/LinuxFS/Documents/PycharmProjects/GothicTTS_GUI/TTS_lib/vocoder/Trainings/multiband-melgan-rwd-Juni-07-2020_12+53-9d7cb1e/config.json"), 
+            str("/media/alexander/LinuxFS/Documents/PycharmProjects/GothicTTS/TTS_lib/vocoder/Trainings/multiband-melgan-rwd-Juni-07-2020_12+53-9d7cb1e/config.json"), 
             use_cuda)
         else:
             vocoder_type = 'GriffinLim'
