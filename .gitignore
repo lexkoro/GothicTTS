@@ -2,3 +2,5 @@
 *.pth.tar
 *.pyc
 __pychache__
+TTS_lib/trained_models/
+
