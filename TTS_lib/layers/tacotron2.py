@@ -102,7 +102,7 @@ class Decoder(nn.Module):
         self.r = r
         self.encoder_embedding_dim = input_dim
         self.separate_stopnet = separate_stopnet
-        self.max_decoder_steps = 2000
+        self.max_decoder_steps = 1000
         self.gate_threshold = 0.5
 
         # model dimensions

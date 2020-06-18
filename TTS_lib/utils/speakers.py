@@ -1,7 +1,7 @@
 import os
 import json
 
-from TTS.datasets.preprocess import get_preprocessor_by_name
+from TTS_lib.datasets.preprocess import get_preprocessor_by_name
 
 
 def make_speakers_json_path(out_path):

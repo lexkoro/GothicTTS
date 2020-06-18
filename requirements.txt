@@ -11,4 +11,3 @@ flask
 scipy
 soundfile
 phonemizer
-pyyaml

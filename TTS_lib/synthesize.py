@@ -12,14 +12,14 @@ import sys
 import yaml
 import random
 
+
 from TTS_lib.utils.synthesis import synthesis
 from TTS_lib.utils.generic_utils import setup_model
-from TTS_lib.utils.io import load_config
+from TTS_lib.utils.io import load_config, load_checkpoint
 from TTS_lib.utils.text.symbols import make_symbols, symbols, phonemes
 from TTS_lib.utils.audio import AudioProcessor
-from TTS_lib.vocoder.utils.generic_utils import (check_config, plot_results,
-                                             setup_discriminator,
-                                             setup_generator)
+
+from TTS_lib.vocoder.utils.generic_utils import setup_generator 
 
 
 def tts(model,
@@ -67,24 +67,6 @@ def tts(model,
 
     return alignment, postnet_output, stop_tokens, waveform
 
-
-# def load_melgan(lib_path, model_file, model_config, use_cuda):
-#     sys.path.append(lib_path) # set this if ParallelWaveGAN is not installed globally
-#     #pylint: disable=import-outside-toplevel
-#     from parallel_wavegan.models import MelGANGenerator
-#     from parallel_wavegan.utils.audio import AudioProcessor as AudioProcessorVocoder
-#     print(" > Loading MelGAN model ...")
-#     print(" | > model config: ", model_config)
-#     print(" | > model file: ", model_file)
-#     with open(model_config) as f:
-#         MELGAN_CONFIG = yaml.load(f, Loader=yaml.Loader)
-#     vocoder_model = MelGANGenerator(**MELGAN_CONFIG["generator_params"])
-#     vocoder_model.load_state_dict(torch.load(model_file, map_location="cpu")["model"]["generator"])
-#     vocoder_model.remove_weight_norm()
-#     ap_vocoder = AudioProcessorVocoder(**MELGAN_CONFIG['audio'])    
-#     if use_cuda:
-#         vocoder_model.cuda()
-#     return vocoder_model.eval(), ap_vocoder
 
 def load_melgan(lib_path, model_file, model_config, use_cuda):
     sys.path.append(lib_path) # set this if ParallelWaveGAN is not installed globally
@@ -135,7 +117,6 @@ def main(**kwargs):
     C = load_config(config_path)
     #C.forward_attn_mask = True
 
-
     if use_gst:
         if use_style_dict:
             style_wav = style_dict
@@ -185,25 +166,29 @@ def main(**kwargs):
     model = setup_model(num_chars, num_speakers, C)
 
     # if gpu is not available use cpu
-    if not use_cuda:
-        cp = torch.load(model_path, map_location=torch.device('cpu'))
-    else:
-        cp = torch.load(model_path)
+    model, _ = load_checkpoint(model, model_path, use_cuda=use_cuda)
+    # if not use_cuda:
+    #     cp = torch.load(model_path, map_location=torch.device('cpu'))
+    # else:
+    #     cp = torch.load(model_path)
 
-    model.load_state_dict(cp['model'])
+    # model.load_state_dict(cp['model'])
+    #print(model)
+    model.decoder.max_decoder_steps = 2000
+    
     model.eval()
-    if use_cuda:
-        model.cuda()
-    model.decoder.set_r(cp['r'])
+    # if use_cuda:
+    #     model.cuda()
+    # model.decoder.set_r(cp['r'])
 
     # load vocoder
     if vocoder_type is 'GAN':
-        model_file = glob(str(Path("/media/alexander/LinuxFS/Documents/PycharmProjects/GothicTTS/TTS_lib/vocoder/Trainings/multiband-melgan-rwd-Juni-07-2020_12+53-9d7cb1e/checkpoint_*.pth.tar")))
+        model_file = glob(str(Path("/media/alexander/LinuxFS/Documents/PycharmProjects/GothicTTS/TTS_lib/vocoder/Trainings/multiband-melgan-rwd-Juni-15-2020_02+07-9d7cb1e/*.pth.tar")))
         if model_file:
             print(model_file[0])
             vocoder, ap_vocoder = load_melgan(str(Path('TTS_lib')), 
             str(model_file[0]), 
-            str("/media/alexander/LinuxFS/Documents/PycharmProjects/GothicTTS/TTS_lib/vocoder/Trainings/multiband-melgan-rwd-Juni-07-2020_12+53-9d7cb1e/config.json"), 
+            str("/media/alexander/LinuxFS/Documents/PycharmProjects/GothicTTS/TTS_lib/vocoder/Trainings/multiband-melgan-rwd-Juni-15-2020_02+07-9d7cb1e/config.json"), 
             use_cuda)
         else:
             vocoder_type = 'GriffinLim'

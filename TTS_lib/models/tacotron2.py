@@ -2,9 +2,9 @@ import copy
 import torch
 from math import sqrt
 from torch import nn
-from TTS.layers.tacotron2 import Encoder, Decoder, Postnet
-from TTS.utils.generic_utils import sequence_mask
-from TTS.layers.gst_layers import GST
+from TTS_lib.layers.tacotron2 import Encoder, Decoder, Postnet
+from TTS_lib.utils.generic_utils import sequence_mask
+from TTS_lib.layers.gst_layers import GST
 import random
 
 
