@@ -3,4 +3,7 @@
 *.pyc
 __pychache__
 TTS_lib/trained_models/
+Gothic TTS.desktop
+TTS_lib/__init__.py
+TTS_lib/vocoder/
 
