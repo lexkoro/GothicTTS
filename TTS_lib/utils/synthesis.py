@@ -3,6 +3,7 @@ installed = {pkg.key for pkg in pkg_resources.working_set}  #pylint: disable=not
 if 'tensorflow' in installed or 'tensorflow-gpu' in installed:
     import tensorflow as tf
 import torch
+#import torchaudio
 import numpy as np
 from .text import text_to_sequence, phoneme_to_sequence
 
@@ -96,6 +97,9 @@ def inv_spectrogram(postnet_output, ap, CONFIG):
     if CONFIG.model in ["Tacotron", "TacotronGST"]:
         wav = ap.inv_spectrogram(postnet_output.T)
     else:
+        # postnet_output = torch.from_numpy(postnet_output)
+        # inv_mel = torchaudio.transforms.InverseMelScale(1025, 80, 22050, 40, 8000, 1000)(postnet_output.T)
+        # wav = torchaudio.transforms.GriffinLim(n_fft=2048, n_iter=120, win_length=1024, hop_length=256, power=1.5, normalized=True, momentum=0.5)(inv_mel)
         wav = ap.inv_melspectrogram(postnet_output.T)
     return wav
 

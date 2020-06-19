@@ -39,7 +39,7 @@ class Tacotron2(nn.Module):
         self.num_speakers = num_speakers
         self.bidirectional_decoder = bidirectional_decoder
         speaker_embedding_dim = 512 if num_speakers > 1 else 0
-        gst_embedding_dim = 256 if self.gst else 0
+        gst_embedding_dim = 512 if self.gst else 0
         decoder_dim = 512+speaker_embedding_dim+gst_embedding_dim
         encoder_dim = 512 if num_speakers > 1 else 512
         proj_speaker_dim = 80 if num_speakers > 1 else 0
@@ -67,7 +67,7 @@ class Tacotron2(nn.Module):
         # global style token layers
         if self.gst:
             self.gst_layer = GST(num_mel=80,
-                                 num_heads=4,
+                                 num_heads=8,
                                  num_style_tokens=10,
                                  embedding_dim=gst_embedding_dim)
 
@@ -85,10 +85,10 @@ class Tacotron2(nn.Module):
     def compute_gst(self, inputs, style_input):
         if isinstance(style_input, dict):
             device = inputs.device
-            query = torch.zeros(1, 1, 128).to(device)
+            query = torch.zeros(1, 1, 256).to(device)
             _GST = torch.tanh(self.gst_layer.style_token_layer.style_tokens)
 
-            gst_outputs = torch.zeros([1, 1, 256], dtype=torch.int32, device=device)
+            gst_outputs = torch.zeros([1, 1, 512], dtype=torch.int32, device=device)
             for k_token, v_amplifier in style_input.items():
                 key = _GST[int(k_token)].unsqueeze(0).expand(1, -1, -1)
                 gst_outputs_att = self.gst_layer.style_token_layer.attention(query, key)

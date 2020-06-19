@@ -68,6 +68,7 @@ def main_gui():
     thread = None
     sentence_file = ''
     text_memory = ''
+    speaker_name = None
     cuda_available = is_available()
     gst_dict = {}
     global status
@@ -249,7 +250,7 @@ def main_gui():
             print('Finished')
             loadingAnimation.Update(filename=path_loading_gif, visible=False)
             if Path(values['dbProject'] + '/output').is_dir():
-                speaker_path = Path(values['dbProject'] + '/output/' + values['dbSpeaker'])
+                speaker_path = Path(values['dbProject'] + '/output/' + speaker_name)
                 open_output_folder(speaker_path=speaker_path)
             status = False
 
