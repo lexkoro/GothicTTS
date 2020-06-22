@@ -79,6 +79,17 @@ def load_melgan(lib_path, model_file, model_config, use_cuda):
 
     return model_gen.eval(), ap_vocoder
 
+
+def remove_special_chars(text):
+    cleaned_text = ""
+    for character in text:
+        if character == ' ' or character == ',':
+            cleaned_text += character
+        if character.isalnum():
+            cleaned_text += character
+    return cleaned_text
+
+
 def split_into_sentences(text):
     text = text.replace('.', '.<stop>')
     text = text.replace('!', '!<stop>')
@@ -228,6 +239,9 @@ def main(**kwargs):
 
         # if sentence was split in sub-sentences -> iterate over them
         for sentence in tts_sentence:
+            print(sentence)
+            sentence = remove_special_chars(sentence)
+            print(sentence)
             # synthesize voice
             _, _, _, wav = tts(model,
                                vocoder,
