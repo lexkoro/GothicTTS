@@ -128,10 +128,10 @@ core
 # file extensions
 *.wav
 *.npy
+*.json
 
 tests/outputs/*
 TODO.txt
 .vscode/*
 data/*
 TTS_lib/vocoder/*
-TTS_lib/trained_models/*
