@@ -1,5 +1,6 @@
 WadaSNR/
 .idea/
+*.desktop
 *.pyc
 .DS_Store
 ./__init__.py
@@ -124,7 +125,13 @@ version.py
 # jupyter dummy files
 core
 
+# file extensions
+*.wav
+*.npy
+
 tests/outputs/*
 TODO.txt
 .vscode/*
 data/*
+TTS_lib/vocoder/*
+TTS_lib/trained_models/*

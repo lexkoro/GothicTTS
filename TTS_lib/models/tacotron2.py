@@ -92,7 +92,7 @@ class Tacotron2(nn.Module):
             for k_token, v_amplifier in style_input.items():
                 key = _GST[int(k_token)].unsqueeze(0).expand(1, -1, -1)
                 gst_outputs_att = self.gst_layer.style_token_layer.attention(query, key)
-                gst_outputs = gst_outputs + gst_outputs_att * v_amplifier
+                gst_outputs = (gst_outputs + (gst_outputs_att * v_amplifier))
 
         else:
             gst_outputs = self.gst_layer(style_input)

@@ -2,7 +2,7 @@ import os
 import time
 import torch
 import json
-from datetime import datetime
+from datetime import datetime, date
 import string
 from glob import glob
 import numpy as np
@@ -90,6 +90,8 @@ def split_into_sentences(text):
 
 def main(**kwargs):
     global symbols, phonemes
+    current_date = date.today()
+    current_date = current_date.strftime("%B %d %Y")
     start_time = time.time()
 
     # read passed variables from gui
@@ -100,8 +102,7 @@ def main(**kwargs):
     vocoder_model_file = ""                         # path to vocoder model file
     vocoder_config = ""                             # path to vocoder config file
     use_gst = kwargs['use_gst']                     # use style_wave for prosody
-    style_dict = kwargs['style_int']                 # use style_wave for prosody
-    use_style_dict = style_dict is not None
+    style_dict = kwargs['style_input']              # use style_wave for prosody
     speakers_json = kwargs['speaker_config']        # has to be the speakers file
     speaker_name = kwargs['speaker_name']           # name of the selected speaker
     sentence_file = kwargs['sentence_file']         # path to file if generate from file
@@ -110,29 +111,26 @@ def main(**kwargs):
     batched_vocoder = True
     
     # create output directory if it doesn't exist
-    os.makedirs(str(Path(project + '/output/' + speaker_name)), exist_ok=True)
+    out_path = str(Path(project, 'output', speaker_name, current_date))
+    os.makedirs(out_path, exist_ok=True)
     
     # load the config
     config_path = Path(project + "/config.json")
     C = load_config(config_path)
     #C.forward_attn_mask = True
 
-    if use_gst:
-        if use_style_dict:
-            style_wav = style_dict
-            print(style_wav)
+    if use_gst: 
+        if style_dict is not None:
+            style_input = style_dict
         else:
             if speaker_name != 'Default':
-                #prosody_waves = glob(str(Path(project + '/prosody_style/*.wav')))
                 prosody_waves = glob(str(Path(C.datasets[0]['path']+speaker_name+'/*/*.wav')))
             else:
-                            #prosody_waves = glob(str(Path(project + '/prosody_style/*.wav')))
                 prosody_waves = glob(str(Path(C.datasets[0]['path']+'/*/*.wav')))
-            #style_wav = None #'svm_xardas_handsoff_g3.wav'
             style_wav_id = random.randrange(0, len(prosody_waves), 1)
-            style_wav = prosody_waves[style_wav_id]
+            style_input = prosody_waves[style_wav_id]
     else:
-        style_wav = None
+        style_input = None
 
     # load the audio processor
     ap = AudioProcessor(**C.audio)
@@ -182,24 +180,28 @@ def main(**kwargs):
     # model.decoder.set_r(cp['r'])
 
     # load vocoder
-    if vocoder_type is 'GAN':
-        model_file = glob(str(Path("/media/alexander/LinuxFS/Documents/PycharmProjects/GothicTTS/TTS_lib/vocoder/Trainings/multiband-melgan-rwd-Juni-15-2020_02+07-9d7cb1e/*.pth.tar")))
-        if model_file:
+    if vocoder_type is 'MelGAN':
+        try:
+            model_file = glob(str(Path("/media/alexander/LinuxFS/Documents/PycharmProjects/GothicTTS/TTS_lib/vocoder/Trainings/multiband-melgan-rwd-Juni-15-2020_02+07-9d7cb1e/*.pth.tar")))
+            if not model_file:
+                raise FileNotFoundError('[!] Vocoder Model not found in path: "{}"'.format(project))
             print(model_file[0])
             vocoder, ap_vocoder = load_melgan(str(Path('TTS_lib')), 
             str(model_file[0]), 
             str("/media/alexander/LinuxFS/Documents/PycharmProjects/GothicTTS/TTS_lib/vocoder/Trainings/multiband-melgan-rwd-Juni-15-2020_02+07-9d7cb1e/config.json"), 
             use_cuda)
-        else:
-            vocoder_type = 'GriffinLim'
+        except FileNotFoundError:
+            raise
+            
     elif vocoder_type is 'WaveRNN':
-        model_file = glob(str(Path(project + '/*.pkl')))
-        if model_file:
+        try:
+            model_file = glob(str(Path(project + '/*.pkl')))
+            if not model_file:
+                raise FileNotFoundError('[!] Vocoder Model not found in path: "{}"'.format(project))
             vocoder, ap_vocoder = load_melgan(str(Path('TTS_lib')), str(model_file[0]), str(Path(project + '/config.yml')), use_cuda)
-        else:
-            vocoder_type = 'GriffinLim'
-    
-    if vocoder_type is 'GriffinLim':
+        except FileNotFoundError:
+            raise
+    else:
         vocoder, ap_vocoder = None, None
 
     print(" > Vocoder: {}".format(vocoder_type))
@@ -211,7 +213,7 @@ def main(**kwargs):
     else:
         list_of_sentences = [text.strip()]
 
-    print(' > Using style wav: {}\n'.format(style_wav))
+    print(' > Using style input: {}\n'.format(style_input))
 
     # iterate over every passed sentence and synthesize
     for _, tts_sentence in enumerate(list_of_sentences):
@@ -219,12 +221,8 @@ def main(**kwargs):
         wav_list = []
 
         # build filename
-        current_time = datetime.now().strftime("%m%d%Y_%H%M%S")
-        out_path = Path(project + '/output/' + speaker_name)
-        speaker_name_file = speaker_name.split(' ')
-        speaker_name_file = '_'.join(speaker_name_file)
-        file_name = ''
-
+        current_time = datetime.now().strftime("%H%M%S")
+        file_name = ' '.join(tts_sentence.split(" ")[:10])
         # if multiple sentences in one line -> split them
         tts_sentence = split_into_sentences(tts_sentence)
 
@@ -241,23 +239,23 @@ def main(**kwargs):
                                use_cuda,
                                batched_vocoder,
                                speaker_id=speaker_id,
-                               style_input=style_wav,
+                               style_input=style_input,
                                figures=False)
 
             # join sub-sentences back together and add a filler between them
             wav_list += list(wav)
             wav_list += [0] * 10000
-            file_name += sentence.replace(" ", "_")
+
         wav = np.array(wav_list)
 
         # finalize filename
-        file_name = '_'.join([str(current_time), str(speaker_id), speaker_name_file, file_name[:30]])
+        file_name = "_".join([str(current_time), file_name])
         file_name = file_name.translate(
             str.maketrans('', '', string.punctuation.replace('_', ''))) + '.wav'
-        out_path = os.path.join(out_path, file_name)
+        file_out_path = os.path.join(out_path, file_name)
 
         # save generated wav to disk
-        ap.save_wav(wav, out_path)
+        ap.save_wav(wav, file_out_path)
         end_time = time.time()
         print(" > Run-time: {}".format(end_time - start_time))
         print(" > Saving output to {}\n".format(out_path))
