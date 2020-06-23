@@ -13,7 +13,7 @@ float_pattern = re.compile(r'[0-9]+[,\.][0-9]+')
 #
 #   Allowed characters
 #
-allowed = list("ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜabcdefghijklmnopqrstuvwxyzäöüß!'(),-.:;? ")
+allowed = list("ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜabcdefghijklmnopqrstuvwxyzäöüß!,-.? ")
 
 
 #
