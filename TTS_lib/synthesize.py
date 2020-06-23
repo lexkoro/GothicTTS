@@ -81,12 +81,8 @@ def load_melgan(lib_path, model_file, model_config, use_cuda):
 
 
 def remove_special_chars(text):
-    cleaned_text = ""
-    for character in text:
-        if character == ' ' or character == ',':
-            cleaned_text += character
-        if character.isalnum():
-            cleaned_text += character
+    cleaned_text = [character for character in text if character.isalnum() or character in ',.!? ']
+    cleaned_text = "".join(cleaned_text)
     return cleaned_text
 
 
@@ -226,22 +222,22 @@ def main(**kwargs):
 
     print(' > Using style input: {}\n'.format(style_input))
 
+
     # iterate over every passed sentence and synthesize
     for _, tts_sentence in enumerate(list_of_sentences):
-        print(" > Text: {}".format(tts_sentence))
         wav_list = []
-
+        print(" > Text: {}".format(tts_sentence))
+        # remove character which are not alphanumerical or contain ',. '
+        tts_sentence = remove_special_chars(tts_sentence) 
         # build filename
         current_time = datetime.now().strftime("%H%M%S")
         file_name = ' '.join(tts_sentence.split(" ")[:10])
         # if multiple sentences in one line -> split them
         tts_sentence = split_into_sentences(tts_sentence)
-
+        
         # if sentence was split in sub-sentences -> iterate over them
         for sentence in tts_sentence:
-            print(sentence)
-            sentence = remove_special_chars(sentence)
-            print(sentence)
+            
             # synthesize voice
             _, _, _, wav = tts(model,
                                vocoder,
