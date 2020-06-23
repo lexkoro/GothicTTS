@@ -18,6 +18,7 @@ from TTS_lib.utils.generic_utils import setup_model
 from TTS_lib.utils.io import load_config, load_checkpoint
 from TTS_lib.utils.text.symbols import make_symbols, symbols, phonemes
 from TTS_lib.utils.audio import AudioProcessor
+from TTS_lib.utils.text.text_cleaning import clean_sentence
 
 from TTS_lib.vocoder.utils.generic_utils import setup_generator 
 
@@ -78,12 +79,6 @@ def load_melgan(lib_path, model_file, model_config, use_cuda):
     ap_vocoder = AudioProcessor(**C.audio)
 
     return model_gen.eval(), ap_vocoder
-
-
-def remove_special_chars(text):
-    cleaned_text = [character for character in text if character.isalnum() or character in ',.!? ']
-    cleaned_text = "".join(cleaned_text)
-    return cleaned_text
 
 
 def split_into_sentences(text):
@@ -226,9 +221,9 @@ def main(**kwargs):
     # iterate over every passed sentence and synthesize
     for _, tts_sentence in enumerate(list_of_sentences):
         wav_list = []
-        print(" > Text: {}".format(tts_sentence))
         # remove character which are not alphanumerical or contain ',. '
-        tts_sentence = remove_special_chars(tts_sentence) 
+        tts_sentence = clean_sentence(tts_sentence) 
+        print(" > Text: {}".format(tts_sentence))
         # build filename
         current_time = datetime.now().strftime("%H%M%S")
         file_name = ' '.join(tts_sentence.split(" ")[:10])
