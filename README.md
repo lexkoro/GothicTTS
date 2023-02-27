@@ -1,4 +1,6 @@
 # GothicTTS
+An old project of mine using pysimplegui for the frontend and tacotron2 as tts backend. 
+
 Graphical User Interface for a Text-To-Speech Model trained on the Gothic Dataset
 
 
